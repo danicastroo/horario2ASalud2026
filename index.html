@@ -7,7 +7,6 @@
   <link rel="icon" href="https://scontent-mad1-1.xx.fbcdn.net/v/t39.30808-6/302505951_516286500501707_3450037676252027922_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=BQU_Qg4Ulo8Q7kNvgHHJTgV&_nc_zt=23&_nc_ht=scontent-mad1-1.xx&_nc_gid=AK-n30hUygt9aRnu2MtQGFi&oh=00_AYDtWCJDpTBWYM84oPcu6SW07FM8OfbkVRBLQCHakLn9ow&oe=679FC07B" type="image/webp"/>
   <link rel="manifest" href="manifest.json">
   
-  <!-- Librería para generar el PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -28,6 +27,7 @@
       justify-content: center;
       gap: 1rem;
       flex-wrap: wrap;
+      transition: color 0.3s;
     }
     
     h1 img {
@@ -35,6 +35,7 @@
       height: auto;
       max-height: 50px;
       object-fit: contain;
+      transition: filter 0.3s;
     }
 
     .table-container {
@@ -98,55 +99,52 @@
       color: #1abc9c;
     }
 
-    /* Contenedor de botones */
+    .copyright-footer {
+      text-align: center;
+      margin-top: 20px;
+      padding-bottom: 10px;
+      font-size: 12px;
+      color: white;
+      opacity: 0.5; 
+      letter-spacing: 0.5px;
+      transition: color 0.3s, opacity 0.3s;
+    }
+
     .action-buttons {
       display: flex;
       justify-content: center;
-      gap: 15px;
-      margin-top: 30px;
+      gap: 12px;
+      margin-top: 20px;
       flex-wrap: wrap;
     }
     
     .btn {
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 14px;
+      background-color: transparent;
+      color: #aac9d5;
+      border: 1px solid #405a78;
+      padding: 6px 14px;
+      font-size: 11px;
       font-family: "Poppins", Arial, sans-serif;
-      font-weight: 600;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 6px;
+      opacity: 0.7;
     }
 
-    .btn-install {
-      background-color: #1abc9c;
-    }
-    .btn-install:hover {
-      background-color: #16a085;
-      transform: translateY(-2px);
-    }
-    
-    .btn-pdf {
-      background-color: #e74c3c;
-    }
-    .btn-pdf:hover {
-      background-color: #c0392b;
-      transform: translateY(-2px);
-    }
-    
-    .btn:active {
-      transform: translateY(1px);
+    .btn:hover {
+      background-color: #34495e;
+      color: white;
+      border-color: #1abc9c;
+      opacity: 1;
     }
 
     .btn svg {
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       fill: none;
       stroke: currentColor;
       stroke-width: 2;
@@ -154,14 +152,23 @@
       stroke-linejoin: round;
     }
 
-    .copyright-footer {
-      text-align: center;
-      margin-top: 40px;
-      padding-bottom: 10px;
-      font-size: 12px;
-      color: white;
-      opacity: 0.7; 
-      letter-spacing: 0.5px;
+    /* Clase especial que se activa solo durante la captura del PDF */
+    .pdf-mode {
+      background-color: #ffffff;
+      padding: 20px;
+    }
+    
+    .pdf-mode h1 {
+      color: #2c3e50; 
+    }
+    
+    .pdf-mode h1 img {
+      filter: brightness(0); 
+    }
+    
+    .pdf-mode .copyright-footer {
+      color: #2c3e50;
+      opacity: 1;
     }
 
     @media (max-width: 768px) {
@@ -180,7 +187,6 @@
 </head>
 <body>
 
-  <!-- Contenido a descargar en este div para que el PDF capture solo esto y no los botones -->
   <div id="contentToPdf">
     <h1>
       <img src="https://www.iesfranciscodelosrios.es/wp-content/uploads/2023/01/logo-menu-ies-rios-2-480x51.webp" alt="Logo IES Francisco de los Rios"/>
@@ -263,16 +269,20 @@
       <p><strong>ING</strong> → Inglés (Profesora: Ana)</p>
     </div>
     -->
+
+    <div class="copyright-footer">
+      &copy; 2026/2027
+    </div>
   </div>
 
   <div class="action-buttons">
-    <button id="installButton" class="btn btn-install">
+    <button id="installButton" class="btn">
       <svg viewBox="0 0 24 24">
         <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4"/>
       </svg>
       Añadir al escritorio
     </button>
-    <button id="downloadPdfButton" class="btn btn-pdf">
+    <button id="downloadPdfButton" class="btn">
       <svg viewBox="0 0 24 24">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
         <polyline points="14 2 14 8 20 8"></polyline>
@@ -284,12 +294,7 @@
     </button>
   </div>
 
-  <div class="copyright-footer">
-    &copy; 2026/2027
-  </div>
-
   <script>
-    // Resaltado de asignaturas al pasar el ratón
     document.querySelectorAll("td").forEach((item) => {
       item.addEventListener("mouseover", (event) => {
         const subject = event.target.textContent;
@@ -309,22 +314,25 @@
       });
     });
 
-    // Lógica del botón de PDF
     const pdfBtn = document.getElementById('downloadPdfButton');
     pdfBtn.addEventListener('click', () => {
       const elementToCapture = document.getElementById('contentToPdf');
+      
+      elementToCapture.classList.add('pdf-mode');
+
       const pdfOptions = {
         margin:       10,
         filename:     'Horario_Bachiller_2A.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, backgroundColor: '#2c3e50' },
+        html2canvas:  { scale: 2, backgroundColor: '#ffffff' },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
       };
       
-      html2pdf().set(pdfOptions).from(elementToCapture).save();
+      html2pdf().set(pdfOptions).from(elementToCapture).save().then(() => {
+        elementToCapture.classList.remove('pdf-mode');
+      });
     });
 
-    // Lógica del botón de instalación
     let deferredPrompt;
     const installBtn = document.getElementById('installButton');
 
@@ -343,7 +351,6 @@
       }
     });
 
-    // Registro del Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js');
