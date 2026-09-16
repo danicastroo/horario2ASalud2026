@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Horario - Bachiller 2A Salud</title>
   <link rel="icon" href="https://scontent-mad1-1.xx.fbcdn.net/v/t39.30808-6/302505951_516286500501707_3450037676252027922_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=BQU_Qg4Ulo8Q7kNvgHHJTgV&_nc_zt=23&_nc_ht=scontent-mad1-1.xx&_nc_gid=AK-n30hUygt9aRnu2MtQGFi&oh=00_AYDtWCJDpTBWYM84oPcu6SW07FM8OfbkVRBLQCHakLn9ow&oe=679FC07B" type="image/webp"/>
+  <link rel="manifest" href="manifest.json">
 
   <style>
     body {
@@ -26,7 +27,6 @@
       flex-wrap: wrap;
     }
     
-    /* Logo responsive */
     h1 img {
       max-width: 100%;
       height: auto;
@@ -34,7 +34,6 @@
       object-fit: contain;
     }
 
-    /* Contenedor con scroll horizontal */
     .table-container {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
@@ -47,7 +46,7 @@
       background-color: #34495e;
       border-radius: 10px;
       overflow: hidden;
-      min-width: 700px; /* asegura scroll en móviles */
+      min-width: 700px;
     }
     th, td {
       padding: 12px;
@@ -94,7 +93,51 @@
     }
     .leyenda strong {
       color: #1abc9c;
-    } /* ¡Faltaba cerrar esta llave! */
+    }
+
+    .install-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .install-btn {
+      background-color: #1abc9c;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      font-size: 14px;
+      font-family: "Poppins", Arial, sans-serif;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .install-btn:hover {
+      background-color: #16a085;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .install-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .install-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
     .copyright-footer {
       text-align: center;
@@ -106,14 +149,13 @@
       letter-spacing: 0.5px;
     }
 
-    /* Ajustes específicos para móviles */
     @media (max-width: 768px) {
       th, td {
         padding: 10px;
         font-size: 14px;
       }
       h1 {
-        flex-direction: column; /* Apila el logo y el texto en móvil */
+        flex-direction: column;
         font-size: 1.5rem;
         gap: 10px;
       }
@@ -204,6 +246,15 @@
   </div>
   -->
 
+  <div class="install-container">
+    <button id="installButton" class="install-btn">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4"/>
+      </svg>
+      Añadir al escritorio
+    </button>
+  </div>
+
   <div class="copyright-footer">
     &copy; 2026/2027
   </div>
@@ -227,6 +278,30 @@
         });
       });
     });
+
+    let deferredPrompt;
+    const installBtn = document.getElementById('installButton');
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredPrompt = event;
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      } else {
+        alert("Para instalar en iPhone:\n1. Toca el botón 'Compartir' (cuadrado con flecha hacia arriba).\n2. Selecciona 'Añadir a la pantalla de inicio'.\n\nSi usas Android, es posible que ya lo tengas instalado.");
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
   </script>
 </body>
 </html>
