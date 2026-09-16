@@ -21,7 +21,7 @@
     h1 {
       text-align: center;
       color: white;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -36,6 +36,24 @@
       max-height: 50px;
       object-fit: contain;
       transition: filter 0.3s;
+    }
+
+    /* Etiqueta de estado en vivo */
+    .status-wrapper {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .live-status {
+      display: inline-block;
+      background: rgba(26, 188, 156, 0.15);
+      color: #1abc9c;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(26, 188, 156, 0.3);
+      transition: all 0.3s ease;
     }
 
     .table-container {
@@ -78,15 +96,34 @@
     tr:hover td:not(:first-child) {
       background-color: #405a78;
     }
+    
     .recreo {
       background-color: #6277be !important;
       font-weight: bold;
     }
+    
     .highlight {
       background-color: #aac9d5 !important;
       color: #000;
       font-weight: bold;
     }
+
+    /* Efecto para resaltar la clase actual */
+    @keyframes pulse-border {
+      0% { box-shadow: 0 0 0 0 rgba(26, 188, 156, 0.5); }
+      70% { box-shadow: 0 0 0 8px rgba(26, 188, 156, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(26, 188, 156, 0); }
+    }
+    .current-class {
+      background-color: #1abc9c !important;
+      color: white !important;
+      font-weight: bold;
+      animation: pulse-border 2s infinite;
+      position: relative;
+      z-index: 1;
+      border-radius: 4px;
+    }
+
     .leyenda {
       margin-top: 20px;
       background: #34495e;
@@ -152,7 +189,7 @@
       stroke-linejoin: round;
     }
 
-    /* Clase especial que se activa solo durante la captura del PDF */
+    /* Clase especial para el PDF */
     .pdf-mode {
       background-color: #ffffff;
       padding: 20px;
@@ -169,6 +206,11 @@
     .pdf-mode .copyright-footer {
       color: #2c3e50;
       opacity: 1;
+    }
+    
+    /* Ocultamos la caja del estado en vivo si estamos generando el PDF */
+    .pdf-mode .status-wrapper {
+      display: none;
     }
 
     @media (max-width: 768px) {
@@ -192,6 +234,10 @@
       <img src="https://www.iesfranciscodelosrios.es/wp-content/uploads/2023/01/logo-menu-ies-rios-2-480x51.webp" alt="Logo IES Francisco de los Rios"/>
       Horario Bachiller 2A Salud
     </h1>
+
+    <div class="status-wrapper">
+      <div id="liveStatus" class="live-status">Cargando estado actual...</div>
+    </div>
 
     <div class="table-container">
       <table>
@@ -295,6 +341,7 @@
   </div>
 
   <script>
+    // --- Lógica del Hover para celdas ---
     document.querySelectorAll("td").forEach((item) => {
       item.addEventListener("mouseover", (event) => {
         const subject = event.target.textContent;
@@ -314,6 +361,77 @@
       });
     });
 
+    // Estado en Vivo y Resaltado
+    const timeTable = [
+      { start: "08:30", end: "09:30", rowIndex: 1 },
+      { start: "09:30", end: "10:30", rowIndex: 2 },
+      { start: "10:30", end: "11:30", rowIndex: 3 },
+      { start: "11:30", end: "12:00", rowIndex: 4, isBreak: true },
+      { start: "12:00", end: "13:00", rowIndex: 5 },
+      { start: "13:00", end: "14:00", rowIndex: 6 },
+      { start: "14:00", end: "15:00", rowIndex: 7 }
+    ];
+
+    function updateLiveStatus() {
+      const currentDate = new Date();
+      const currentDay = currentDate.getDay(); // 0 = Domingo, 1 = Lunes, ..., 5 = Viernes
+      const currentHours = currentDate.getHours();
+      const currentMinutes = currentDate.getMinutes();
+      const totalCurrentMinutes = currentHours * 60 + currentMinutes;
+
+      const statusBox = document.getElementById('liveStatus');
+
+      // Limpia todas las clases activas previas
+      document.querySelectorAll('.current-class').forEach(el => el.classList.remove('current-class'));
+
+      // Fines de semana
+      if (currentDay === 0 || currentDay === 6) {
+        statusBox.textContent = "Fin de semana 🎉 ¡A descansar!";
+        return;
+      }
+
+      let activeSlot = null;
+
+      for (let i = 0; i < timeTable.length; i++) {
+        const slot = timeTable[i];
+        const startMins = parseInt(slot.start.split(':')[0]) * 60 + parseInt(slot.start.split(':')[1]);
+        const endMins = parseInt(slot.end.split(':')[0]) * 60 + parseInt(slot.end.split(':')[1]);
+
+        if (totalCurrentMinutes >= startMins && totalCurrentMinutes < endMins) {
+          activeSlot = slot;
+          activeSlot.endMins = endMins;
+          break;
+        }
+      }
+
+      if (activeSlot) {
+        const minsLeft = activeSlot.endMins - totalCurrentMinutes;
+        
+        if (activeSlot.isBreak) {
+          statusBox.textContent = `☕ ¡Recreo! Termina en ${minsLeft} min.`;
+          const breakCell = document.querySelector('table tr:nth-child(5) th');
+          if (breakCell) breakCell.classList.add('current-class');
+        } else {
+          const scheduleTable = document.querySelector('table');
+          const activeRow = scheduleTable.rows[activeSlot.rowIndex];
+          const activeCell = activeRow.cells[currentDay];
+          const currentSubject = activeCell.textContent;
+
+          statusBox.textContent = `📚 Clase actual: ${currentSubject} (Termina en ${minsLeft} min)`;
+          activeCell.classList.add('current-class');
+        }
+      } else if (totalCurrentMinutes < 510) { // Antes de las 08:30 (510 min)
+        statusBox.textContent = "Las clases de hoy aún no han empezado 😴";
+      } else if (totalCurrentMinutes >= 900) { // Después de las 15:00 (900 min)
+        statusBox.textContent = "¡Clases terminadas por hoy! 🏠";
+      }
+    }
+
+    // Ejecutamos la función al cargar la página y luego la actualizamos cada 60 segundos
+    updateLiveStatus();
+    setInterval(updateLiveStatus, 60000);
+
+    // --- Descarga PDF ---
     const pdfBtn = document.getElementById('downloadPdfButton');
     pdfBtn.addEventListener('click', () => {
       const elementToCapture = document.getElementById('contentToPdf');
@@ -333,6 +451,7 @@
       });
     });
 
+    // --- PWA: Instalar en escritorio ---
     let deferredPrompt;
     const installBtn = document.getElementById('installButton');
 
